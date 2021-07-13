@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/SDC-Honeydew/questions-and-answers#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mongoose": "^5.13.2"
   },
   "devDependencies": {
     "jest": "^27.0.6"
