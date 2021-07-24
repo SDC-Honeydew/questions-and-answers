@@ -6,9 +6,6 @@ mongoose.connection.once('open', () => {
   console.log('connected');
 });
 
-
-
-
 let photoSchema = mongoose.Schema({
   id: String,
   answer_id: String,
@@ -78,7 +75,7 @@ let insertMany = async (type, docs, cb) => {
 
 
 let getProductQA = async (query, cb) => {
-  let qaRes = {};
+  let result = {};
   await database['questions'].find({ 'product_id': query.product_id })
     .sort({ id: "asc" })
     .limit(query.count)
@@ -96,6 +93,8 @@ let getProductQA = async (query, cb) => {
         ret.reported = item.reported;
         return ret;
       });
+      cb(null, result);
+      return;
     })
     .catch((err) => {
       cb(err, null);
@@ -106,3 +105,4 @@ let getProductQA = async (query, cb) => {
 module.exports.insertOne = insertOne;
 module.exports.insertMany = insertMany;
 module.exports.getProductQA = getProductQA;
+module.exports.connection = mongoose.connection;

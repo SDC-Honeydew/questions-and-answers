@@ -23,8 +23,10 @@ app.get('/qa/questions', (req, res) => {
       res.status(500).send(err);
       return;
     }
-    let result = {};
-    console.log(result);
+    //let result = {};
+    //console.log(result);
+    res.send(docs);
+    res.end();
   });
 })
 
@@ -79,6 +81,11 @@ app.put('/qa/answers/:answer_id/report', (req, res) => {
 
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log('listening on port ', port);
 })
+
+
+module.exports.app = app;
+module.exports.server = server;
+module.exports.db = db;
