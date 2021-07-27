@@ -19,7 +19,8 @@
   "homepage": "https://github.com/SDC-Honeydew/questions-and-answers#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "mongoose": "^5.13.2"
+    "mongoose": "^5.13.2",
+    "pg": "^8.6.0"
   },
   "devDependencies": {
     "csv-parser": "^3.0.0",

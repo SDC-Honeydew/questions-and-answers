@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const db = require('./database');
+const db = require('./mongodb');
+//const db = require('./postgres');
 const app = express();
 const port = 3000;
 
@@ -17,17 +18,9 @@ app.get('/qa/questions', (req, res) => {
   query.page = Number(req.query.page) || 1;
   query.count = req.query.count || 5;
   console.log('Got query for product:', query);
-  db.getProductQA(query, (err, docs) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send(err);
-      return;
-    }
-    //let result = {};
-    //console.log(result);
-    res.send(docs);
-    res.end();
-  });
+  db.getQuestions(query, (err, results) => {
+    res.send(results);
+  })
 })
 
 // Answers List
