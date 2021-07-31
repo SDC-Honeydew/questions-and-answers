@@ -12,7 +12,8 @@ let photoSchema = mongoose.Schema({
   url: String
 });
 
-photoSchema.index({ answer_id: 1 })
+photoSchema.index({ answer_id: 1 });
+photoSchema.index({ id: 1 }, { unique: true });
 
 let answerSchema = mongoose.Schema({
   id: String,
@@ -26,6 +27,7 @@ let answerSchema = mongoose.Schema({
 });
 
 answerSchema.index({ question_id: 1 })
+answerSchema.index({ id: 1 }, { unique: true })
 
 let questionSchema = mongoose.Schema({
   id: String,
@@ -39,7 +41,7 @@ let questionSchema = mongoose.Schema({
 });
 
 questionSchema.index({ product_id: 1 })
-
+questionSchema.index({ id: 1 }, { unique: true })
 
 let database = {};
 
@@ -76,17 +78,48 @@ let insertMany = async (type, docs, cb) => {
 };
 
 
-let getQuestions = async (query, cb) => {
+let getAnswers = async (query, cb) => {
   let result = {};
-  await database['questions'].find({ 'product_id': query.product_id })
+  result.question_id = query.question_id;
+  result.page = query.page;
+  result.count = query.count;
+  await database['answers'].find({ 'question_id': query.question_id, 'reported': false })
     .sort({ date: "desc" })
     .limit(query.count)
     .skip((query.page - 1) * query.count)
-    .then((res) => {
-      result.product_id = query.product_id;
-      result.results = res.map(item => {
+    .then((answers) => {
+      result.answers = answers.map((answer) => {
         let ret = {};
-        ret.question_id = item.id;
+        ret.id = Number(answer.id);
+        ret.body = answer.body;
+        ret.date = answer.date;
+        ret.answerer_name = answer.answerer_name;
+        ret.answerer_email = answer.answerer_email;
+        ret.reported = answer.reported;
+        ret.helpfulness = answer.helpfulness;
+        return ret;
+      });
+    })
+    .catch(err => {
+      cb(err, null);
+      return null;
+    })
+  cb(null, result);
+}
+
+
+let getQuestions = async (query, cb) => {
+  console.log(questionSchema.indexes());
+  let result = {};
+  result.product_id = query.product_id;
+  await database['questions'].find({ 'product_id': query.product_id, 'reported': false })
+    .sort({ date: "desc" })
+    .limit(query.count)
+    .skip((query.page - 1) * query.count)
+    .then((questions) => {
+      result.results = questions.map(item => {
+        let ret = {};
+        ret.question_id = Number(item.id);
         ret.question_body = item.body;
         ret.question_date = item.date.toString();
         ret.asker_name = item.asker_name;
@@ -98,15 +131,15 @@ let getQuestions = async (query, cb) => {
     })
     .catch((err) => {
       cb(err, null);
-      return;
+      return null;
     });
   for (let question of result.results) {
-    await database['answers'].find({ 'question_id': question.question_id })
+    await database['answers'].find({ 'question_id': question.question_id, 'reported': false })
       .sort({ date: "desc" })
       .then((answers) => {
         question.answers = answers.map((answer) => {
           let ret = {};
-          ret.id = answer.id;
+          ret.id = Number(answer.id);
           ret.body = answer.body;
           ret.date = answer.date;
           ret.answerer_name = answer.answerer_name;
@@ -118,7 +151,7 @@ let getQuestions = async (query, cb) => {
       })
       .catch(err => {
         cb(err, null);
-        return;
+        return null;
       })
   }
   for (let question of result.results) {
@@ -133,7 +166,84 @@ let getQuestions = async (query, cb) => {
   cb(null, result);
 };
 
+let addQuestion = async (question, cb) => {
+  question.id = mongoose.Types.ObjectId().toString();
+  await database['questions']
+    .create(
+      question,
+      (err, res) => {
+        if (err) {
+          console.log("error!!!:", err);
+          return;
+        }
+        cb(null, res);
+      }
+    );
+}
+
+
+let addAnswer = async (answer, photos, cb) => {
+  answer.id = mongoose.Types.ObjectId().toString();
+  await database['questions']
+    .create(answer)
+    .then((result) => { console.log(result) })
+    .catch((err) => {
+      cb(err, null);
+      return null;
+    });
+  for (let photo of photos) {
+    photo.answer_id = answer.id;
+    photo.id = mongoose.Types.ObjectId().toString();
+    await database['answers_photos']
+      .create(photo)
+      .then((result) => { console.log(result) })
+      .catch((err) => {
+        cb(err, null);
+        return null;
+      });
+  }
+  cb(null);
+}
+
+let markHelpful = async (type, id, cb) => {
+  let helpfulness = 0;
+  await database[type]
+    .findOne({ 'id': id })
+    .then((result) => {
+      console.log(result);
+      helpfulness = result.helpfulness + 1;
+    })
+    .catch(err => {
+      cb(err);
+      return null;
+    });
+  await database[type]
+    .findOneAndUpdate({ 'id': id }, { 'helpfulness': helpfulness })
+    .catch(err => {
+      cb(err);
+      return null;
+    });
+  cb(null);
+}
+
+let markReported = async (type, id, cb) => {
+  await database[type]
+    .findOneAndUpdate({ 'id': id }, { reported: true })
+    .then((result) => {
+      console.log(result);
+    })
+    .catch(err => {
+      cb(err);
+    })
+  cb(null);
+}
+
 module.exports.insertOne = insertOne;
 module.exports.insertMany = insertMany;
 module.exports.getQuestions = getQuestions;
+module.exports.getAnswers = getAnswers;
+module.exports.addQuestion = addQuestion;
+module.exports.addAnswer = addAnswer;
+module.exports.markHelpful = markHelpful;
+module.exports.markReported = markReported;
 module.exports.connection = mongoose.connection;
