@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon server/index.js",
-    "test": "jest --coverage --detectOpenHandles"
+    "test": "jest --coverage --detectOpenHandles",
+    "stresstest": "artillery run artillery/QAtest.yml"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "pg": "^8.6.0"
   },
   "devDependencies": {
+    "artillery": "^1.7.6",
     "csv-parser": "^3.0.0",
     "jest": "^27.0.6",
     "supertest": "^6.1.4"
