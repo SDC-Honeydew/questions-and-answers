@@ -4,7 +4,7 @@ const csv = require('csv-parser');
 const { Writable } = require('stream');
 
 
-let dataTables = ['answers_photos', 'questions'];
+let dataTables = ['answers_photos', 'questions', 'answers'];
 
 let preprocess = (type, row) => {
   let doc = {};
@@ -38,39 +38,49 @@ let preprocess = (type, row) => {
 var dataBulk = [];
 
 let readData = (type, successCB) => {
-  fs.createReadStream(`C:/Users/mamin/Desktop/qadata/${type}.csv`)
-    .pipe(csv({}, { objectMode: true }))
-    .pipe(new Writable({
-      write: (json, encoding, callback) => {
-        let doc = preprocess(type, json);
-        dataBulk.push(doc);
-        if (dataBulk.length === 5000) {
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(`${type}.csv`)
+      .pipe(csv({}, { objectMode: true }))
+      .pipe(new Writable({
+        write: (json, encoding, callback) => {
+          let doc = preprocess(type, json);
+          dataBulk.push(doc);
+          if (dataBulk.length === 5000) {
+            db.insertMany(type, dataBulk, () => {
+              dataBulk = [];
+              callback();
+            });
+          } else {
+            callback();
+          }
+        },
+        objectMode: true
+      }))
+      .on('finish', () => {
+        if (dataBulk.length > 0) {
           db.insertMany(type, dataBulk, () => {
             dataBulk = [];
-            callback();
-          });
+            console.log(`${type}.CSV file processed successfully`);
+            successCB();
+            resolve();
+          })
         } else {
-          callback();
-        }
-      },
-      objectMode: true
-    }))
-    .on('finish', () => {
-      if (dataBulk.length > 0) {
-        db.insertMany(type, dataBulk, () => {
-          dataBulk = [];
           console.log(`${type}.CSV file processed successfully`);
           successCB();
-        })
-      } else {
-        console.log(`${type}.CSV file processed successfully`);
-        successCB();
-      }
-    });
+          resolve();
+        }
+      });
+  })
 };
 
-setTimeout(() => {
-  readData('questions');
-}, 300);
 
+let readAllTheCSVs = async () => {
+  for (var item of dataTables) {
+    await db.dropCollection(item);
+    await readData(item, () => {
+      console.log(`${type}.CSV file processed successfully`);
+    });
+  }
+}
 
+readAllTheCSVs();

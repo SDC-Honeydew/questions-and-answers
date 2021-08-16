@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/qa');
+mongoose.connect('mongodb://18.206.76.53:27017/qa');
 mongoose.connection.on('error', console.error.bind(console, 'connection error:'));
 mongoose.connection.once('open', () => {
   console.log('connected');
@@ -238,6 +238,10 @@ let markReported = async (type, id, cb) => {
   cb(null);
 }
 
+let dropCollection = (type) => {
+  return mongoose.connection.dropCollection(type);
+}
+
 module.exports.insertOne = insertOne;
 module.exports.insertMany = insertMany;
 module.exports.getQuestions = getQuestions;
@@ -246,4 +250,4 @@ module.exports.addQuestion = addQuestion;
 module.exports.addAnswer = addAnswer;
 module.exports.markHelpful = markHelpful;
 module.exports.markReported = markReported;
-module.exports.connection = mongoose.connection;
+module.exports.dropCollection = dropCollection;
