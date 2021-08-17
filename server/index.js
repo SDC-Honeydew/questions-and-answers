@@ -12,6 +12,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // List Questions
 // Retrieves a list of questions for a particular product. This list does not include any reported questions.
 
+
+app.get('/loaderio-9835009cb2bab62413a4721f8131bad8', (req, res) => {
+  res.send('loaderio-9835009cb2bab62413a4721f8131bad8');
+})
+
 app.get('/qa/questions', (req, res) => {
   let query = {};
   query.product_id = req.query.product_id;
