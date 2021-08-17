@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://18.206.76.53:27017/qa');
+mongoose.connect('mongodb://3.238.201.6:27017/qa');
 mongoose.connection.on('error', console.error.bind(console, 'connection error:'));
 mongoose.connection.once('open', () => {
   console.log('connected');

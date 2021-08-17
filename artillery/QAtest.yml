@@ -1,5 +1,5 @@
 config:
-  target: "http://localhost:3000"
+  target: "http://3.235.17.220"
   phases:
     - duration: 10
       arrivalRate: 5
