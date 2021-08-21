@@ -3,7 +3,11 @@ const bodyParser = require('body-parser');
 const db = require('./mongodb');
 //const db = require('./postgres');
 const app = express();
-const port = 3000;
+const port = process.env.PORT;
+
+if (!port) {
+  throw new Error('port must be specified');
+}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
