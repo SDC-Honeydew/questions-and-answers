@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const dbIP = process.env.dbIP;
-
-if (!dbIP) {
-  thorw new error('database ip is not specified');
+console.log(dbIP);
+if (dbIP === undefined) {
+  throw new error('database ip is not specified');
 }
 
 mongoose.connect(`mongodb://${dbIP}:27017/qa`);

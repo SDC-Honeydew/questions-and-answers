@@ -3,9 +3,9 @@ const bodyParser = require('body-parser');
 const db = require('./mongodb');
 //const db = require('./postgres');
 const app = express();
-const port = process.env.PORT;
+const port = process.env.port;
 
-if (!port) {
+if (port === undefined) {
   throw new Error('port must be specified');
 }
 
